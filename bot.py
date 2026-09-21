@@ -1141,8 +1141,8 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
 
 
 def start_health_server():
-    """Starts a lightweight health check server if PORT environment variable is set (Cloud PaaS)."""
-    port_str = os.getenv("PORT")
+    """Starts a lightweight health check server if PORT or SPACE_ID is set (Cloud PaaS / Hugging Face)."""
+    port_str = os.getenv("PORT") or (os.getenv("PORT", "7860") if os.getenv("SPACE_ID") else None)
     if not port_str:
         return
     try:

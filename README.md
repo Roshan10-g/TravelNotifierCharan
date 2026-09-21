@@ -1,3 +1,13 @@
+---
+title: TravelNotifier Bot
+emoji: 🚇
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🚆 TravelNotifier — Commute Autopilot Telegram Bot
 
 An automated, zero-stress daily commute assistant built for Hyderabad and multi-modal transit commuters.

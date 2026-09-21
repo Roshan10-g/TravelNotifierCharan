@@ -1,13 +1,21 @@
 FROM python:3.11-slim
 
-WORKDIR /app
+# Create non-root user (required by Hugging Face Spaces & security best practices)
+RUN useradd -m -u 1000 user
+USER user
+ENV HOME=/home/user \
+    PATH=/home/user/.local/bin:$PATH \
+    PYTHONUNBUFFERED=1 \
+    PYTHONIOENCODING=utf-8 \
+    PORT=7860
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+WORKDIR $HOME/app
 
-COPY . .
+COPY --chown=user requirements.txt .
+RUN pip install --no-cache-dir --user -r requirements.txt
 
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONIOENCODING=utf-8
+COPY --chown=user . .
+
+EXPOSE 7860
 
 CMD ["python", "bot.py"]
