@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
+BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "8809214897:AAFaRs3DdDEjR_8Jb-rtn7PiK60kSuctIDw")
 if not BOT_TOKEN:
     raise ValueError("TELEGRAM_BOT_TOKEN is missing in environment or .env file!")
 
