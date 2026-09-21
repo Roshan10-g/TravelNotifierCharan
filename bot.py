@@ -7,6 +7,7 @@ Includes confirmation buttons, re-enter buttons, and undo capabilities for every
 """
 
 import os
+import time
 import threading
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import logging
@@ -1141,10 +1142,8 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
 
 
 def start_health_server():
-    """Starts a lightweight health check server if PORT or SPACE_ID is set (Cloud PaaS / Hugging Face)."""
-    port_str = os.getenv("PORT") or (os.getenv("PORT", "7860") if os.getenv("SPACE_ID") else None)
-    if not port_str:
-        return
+    """Starts a lightweight health check server on $PORT for Render / cloud PaaS."""
+    port_str = os.getenv("PORT", "10000")
     try:
         port = int(port_str)
         server = HTTPServer(("0.0.0.0", port), HealthCheckHandler)
@@ -1218,8 +1217,14 @@ def main():
     # Catch-all text handler
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text_message))
 
-    logger.info("Bot is polling for updates...")
-    application.run_polling(allowed_updates=Update.ALL_TYPES)
+    while True:
+        try:
+            logger.info("Bot is polling for updates...")
+            application.run_polling(allowed_updates=Update.ALL_TYPES)
+            break
+        except Exception as e:
+            logger.warning(f"Polling interrupted: {e}. Retrying in 5 seconds...")
+            time.sleep(5)
 
 
 if __name__ == "__main__":
