@@ -33,7 +33,7 @@ pip install -r requirements.txt
 ### 2. Configure Environment (`.env`)
 Create or edit `.env`:
 ```env
-TELEGRAM_BOT_TOKEN=8809214897:AAFaRs3DdDEjR_8Jb-rtn7PiK60kSuctIDw
+TELEGRAM_BOT_TOKEN=8809214897.....0kSuctIDw
 TIMEZONE=Asia/Kolkata
 DEFAULT_ALERT_DISTANCE_BUS_METERS=500
 DEFAULT_ALERT_DISTANCE_METRO_METERS=800
