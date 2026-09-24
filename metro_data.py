@@ -111,14 +111,24 @@ def search_metro_stations(query: str) -> List[Dict]:
     return matches
 
 
-def get_station_info(name: str, line: Optional[str] = None) -> Optional[Dict]:
+def normalize_metro_name(name: str) -> str:
+    """Strips 'metro', 'station', 'interchange' etc. for fuzzy matching."""
+    n = name.lower()
+    for w in ["metro station", "metro", "station", "interchange"]:
+        n = n.replace(w, "")
+    return " ".join(n.split()).strip()
+
+
+def find_station(name: str, line: Optional[str] = None) -> Optional[Dict]:
     """Retrieve station metadata by name and optional line."""
-    name_clean = name.strip().lower()
+    name_clean = normalize_metro_name(name)
     for line_name, stations in METRO_STATIONS.items():
         if line and line.lower() != line_name:
             continue
         for idx, station in enumerate(stations):
-            if station["name"].lower() == name_clean or name_clean in station.get("aliases", []):
+            s_clean = normalize_metro_name(station["name"])
+            aliases_clean = [normalize_metro_name(a) for a in station.get("aliases", [])]
+            if s_clean == name_clean or name_clean in aliases_clean:
                 return {
                     "name": station["name"],
                     "lat": station["lat"],
@@ -135,8 +145,8 @@ def get_preceding_metro_station(origin_name: str, target_name: str, preferred_li
     Calculates the exact station that is ONE STOP BEFORE target_name
     when traveling from origin_name to target_name.
     """
-    origin_info = None
-    target_info = None
+    origin_clean = normalize_metro_name(origin_name)
+    target_clean = normalize_metro_name(target_name)
 
     # Check lines that contain BOTH stations
     for line_name, stations in METRO_STATIONS.items():
@@ -146,11 +156,12 @@ def get_preceding_metro_station(origin_name: str, target_name: str, preferred_li
         o_idx = None
         t_idx = None
         for idx, s in enumerate(stations):
-            s_name_lower = s["name"].lower()
-            aliases = s.get("aliases", [])
-            if s_name_lower == origin_name.lower() or origin_name.lower() in aliases:
+            s_clean = normalize_metro_name(s["name"])
+            aliases_clean = [normalize_metro_name(a) for a in s.get("aliases", [])]
+
+            if s_clean == origin_clean or origin_clean in aliases_clean:
                 o_idx = idx
-            if s_name_lower == target_name.lower() or target_name.lower() in aliases:
+            if s_clean == target_clean or target_clean in aliases_clean:
                 t_idx = idx
 
         if o_idx is not None and t_idx is not None:

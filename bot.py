@@ -264,6 +264,51 @@ async def on_location_update(update: Update, context: ContextTypes.DEFAULT_TYPE)
     live_lat = loc.latitude
     live_lng = loc.longitude
 
+    journey = database.get_active_journey(user_id)
+    if not journey:
+        # Determine morning vs evening by local hour (15:00 = 3 PM)
+        now_hour = datetime.now(pytz.timezone(config.TIMEZONE)).hour
+        direction = "evening" if now_hour >= 15 else "morning"
+        stops = database.get_user_route(user_id, direction)
+
+        if stops:
+            database.start_journey(user_id, direction)
+            dir_title = "Evening Commute 🌆 (Office ➔ Home)" if direction == "evening" else "Morning Commute ☀️ (Home ➔ Office)"
+            first_target = stops[1]["stop_name"] if len(stops) > 1 else stops[0]["stop_name"]
+            final_dest = stops[-1]["stop_name"]
+            mode_badge = "🚇 Metro" if (len(stops) > 1 and stops[1].get("mode") == "metro") else "🚌 Bus"
+
+            await context.bot.send_message(
+                chat_id=user_id,
+                text=(
+                    f"📡 <b>Live Location Received!</b>\n\n"
+                    f"🚀 <b>Auto-Started {dir_title}</b>\n"
+                    f"👉 First target: <b>{first_target}</b> ({mode_badge})\n"
+                    f"🎯 Final destination: <b>{final_dest}</b>\n\n"
+                    f"💡 <i>I am tracking in the background and will alert you 1 stop before your Metro stops and 500m before your Bus stops!</i>"
+                ),
+                parse_mode=ParseMode.HTML
+            )
+        else:
+            await context.bot.send_message(
+                chat_id=user_id,
+                text="⚠️ Live location received, but you haven't configured your route yet! Please tap /setstops first.",
+                parse_mode=ParseMode.HTML
+            )
+            return
+    elif journey.get("last_lat") is None:
+        # First location point received after clicking Start Journey
+        direction = journey["direction"]
+        stops = database.get_user_route(user_id, direction)
+        target_idx = journey["current_target_index"]
+        target_name = stops[target_idx]["stop_name"] if stops and target_idx < len(stops) else "Next Stop"
+
+        await context.bot.send_message(
+            chat_id=user_id,
+            text=f"📡 <b>Live location connected!</b>\nTracking active towards <b>{target_name}</b>. Have a safe ride!",
+            parse_mode=ParseMode.HTML
+        )
+
     result = journey_engine.process_location_update(user_id, live_lat, live_lng)
     if result and result.should_notify:
         await context.bot.send_message(

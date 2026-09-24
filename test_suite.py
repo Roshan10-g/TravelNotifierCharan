@@ -36,6 +36,15 @@ class TestTravelNotifier(unittest.TestCase):
         self.assertIsNotNone(prec)
         self.assertEqual(prec["name"], "Madhura Nagar")
 
+        # Test with 'Metro' suffix
+        prec_suffix = metro_data.get_preceding_metro_station("HITEC City Metro", "Ameerpet Metro")
+        self.assertIsNotNone(prec_suffix)
+        self.assertEqual(prec_suffix["name"], "Madhura Nagar")
+
+        prec_red_suffix = metro_data.get_preceding_metro_station("Ameerpet Metro", "Dilsukhnagar Metro")
+        self.assertIsNotNone(prec_red_suffix)
+        self.assertEqual(prec_red_suffix["name"], "Musarambagh")
+
     def test_geocoder_search(self):
         results = geocoder.search_locations("Ameerpet", limit=5)
         self.assertTrue(len(results) > 0)
